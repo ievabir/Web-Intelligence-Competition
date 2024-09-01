@@ -1,0 +1,76 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# VSCode settings and workspace-specific files
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# pipenv and poetry
+Pipfile.lock
+poetry.lock
+
+# pyenv
+.python-version
+
+# pytest
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Bandit security checker
+.bandit/
+
+# Pylint reports
+pylint-report.txt
+
+# IntelliJ IDEA project files
+.idea/
+
+# Logs
+*.log
+
+# SQLite database files
+*.sqlite3
+
+# Other project specific files
+*.sublime-workspace
+*.sublime-project
+.Rhistory
+
+#Data under NDA
+/data
+
+#Not a place of honor
+/troubleshooting
