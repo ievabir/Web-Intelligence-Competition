@@ -7,103 +7,108 @@ import nltk
 
 nltk.download('stopwords')
 
-# Paths to your CSV files
-file_path = 'data/translated_file_corrected.csv'
-file_path_cat = 'data/wi_labels.csv'
+class Classifier:
+    def __init__(self, job_file_path: str, labels_file_path: str):
+        self.job_file_path = job_file_path
+        self.labels_file_path = labels_file_path
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.stopwords = nltk.corpus.stopwords.words('english')
 
-# Read CSV files
-df = pd.read_csv(file_path)
-df_cat = pd.read_csv(file_path_cat)
+        self.stopwords.extend(['junior','senior', 'advertisement','london','head','part',
+                               'project','lead','job','intern','remote','trainee'])
+        if 'it' in self.stopwords:
+            self.stopwords.remove('it')
+        if 'not' in self.stopwords:
+            self.stopwords.remove('not')
 
+    def load_data(self) -> None:
+        """Load data."""
+        self.df = pd.read_csv(self.job_file_path)
+        self.df_cat = pd.read_csv(self.labels_file_path)
 
-def find_included(desc):
-    idx = desc.find("Examples of the occupations classified here:")
-    if idx != -1:
-        return desc[idx:-1]
-    else:
-        return desc
+    def preprocess_text(self, text: str) -> str:
+        """Preprocess text by expanding contractions and removing stopwords."""
+        text = contractions.fix(text.lower())
+        words = text.split()
+        filtered_words = [word for word in words if word not in self.stopwords]
+        return ' '.join(filtered_words).lower()
 
-
-def find_excluded(desc):
-    idx = desc.find("Excluded from this group are:")
-    if idx != -1:
-        return desc[:idx]
-    else:
-        return desc
-
-def find_classified_elsewhere(desc):
-    idx = desc.find("Some related occupations classified elsewhere:")
-    if idx != -1:
-        return desc[:idx]
-    else:
-        return desc
+    def process_job_titles(self) -> None:
+        """Casts everything as string, removes NA values and calls function 
+        to preprocess."""
+        self.df['title'] = self.df['title'].astype(str).fillna('')
+        self.df['title'] = self.df['title'].apply(self.preprocess_text)
     
-def remove_notes(desc):
-    idx = desc.find("Notes")
-    if idx != -1:
-        return desc[:idx]
-    else:
-        return desc
+    # Temporarily commenting out for calibration purposes
+    # def find_included(self, desc: str) -> str:
+    #     """extracts 'Examples of the occupations classified here:'"""
+    #     idx = desc.find("Examples of the occupations classified here:")
+    #     return desc[idx:] if idx != -1 else desc
 
-def remove_redundant(desc):
-    # After seeing that there's statistically more noise than meaningful info 
-    # 4000 character mark, the rest of job description is cut.
-    return desc[:4000]
+    def find_excluded(self, desc: str) -> str:
+        """Removes text after 'Excluded from this group are:'."""
+        idx = desc.find("Excluded from this group are:")
+        return desc[:idx] if idx != -1 else desc
 
-def remove_stopwords(text):
-    stopwords = [nltk.corpus.stopwords.words('english')]
-    stopwords.extend(['junior','senior', 'advertisement','london','head','part',
-                      'project','lead','job','intern','remote','trainee']) 
-    if 'it' in stopwords:
-        stopwords.remove('it')
-    words = text.split() 
-    filtered_words = [word for word in words if word.lower() not in stopwords]
-    return ' '.join(filtered_words)
+    def find_classified_elsewhere(self, desc: str) -> str:
+        """Removes text after 'Some related occupations classified elsewhere:'"""
+        idx = desc.find("Some related occupations classified elsewhere:")
+        return desc[:idx] if idx != -1 else desc
 
-
-df['title'] = df['title'].astype(str).fillna('')
-df['title'] = df['title'].str.lower()
-df['title'] = df['title'].apply(lambda x: contractions.fix(x))
-df['title'] = df['title'].apply(remove_stopwords)
-
-
-df_cat['description'] = df_cat['description'].astype(str).fillna('')
-df_cat['description'] = df_cat['label'] + '.' + df_cat['description']
-df_cat['description'] = df_cat['description'].apply(find_included)
-df_cat['description'] = df_cat['description'].apply(find_excluded)
-df_cat['description'] = df_cat['description'].apply(find_classified_elsewhere)
-df_cat['description'] = df_cat['description'].apply(remove_notes)
-df_cat['description'] = df_cat['description'].apply(remove_redundant)
-df_cat['description'] = df_cat['description'].str.lower()
-df_cat['description'] = df_cat['description'].apply(lambda x: contractions.fix(x))    
-df_cat['description'] = df_cat['description'].apply(remove_stopwords)
-
-
-# Initialize the sentence transformer model
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
-def get_sentence_embeddings(text):
-
-    embeddings = model.encode(text)
-    return embeddings
-
-def find_best_matching_code(job_embeddings, category_embeddings, df_cat):
-
-    similarities = cosine_similarity(job_embeddings, category_embeddings)
-
-    best_match_indices = np.argmax(similarities, axis=1)
+    def remove_notes(self, desc: str) -> str:
+        """Removes 'Notes'"""
+        idx = desc.find("Notes")
+        return desc[:idx] if idx != -1 else desc
     
-    isco_codes = df_cat.iloc[best_match_indices]['code'].values
-    return isco_codes
+    def remove_note(self, desc: str) -> str:
+        """Turns out there's also few instances of 'Note' instead of 'Notes'
+        Remove those"""
+        idx = desc.find("Note")
+        return desc[:idx] if idx != -1 else desc
 
-# Compute embeddings for job titles and category descriptions
-df['embedding'] = df['title'].apply(get_sentence_embeddings)
-df_cat['embedding'] = df_cat['description'].apply(get_sentence_embeddings)
+    def preprocess_labels_descriptions(self) -> None:
+        """Clean label descriptions."""
+        self.df_cat['description'] = self.df_cat['description'].astype(str).fillna('')
+        
+        # Commenting out - unsure if it adds accuracy
+        # self.df_cat['description'] = self.df_cat['description'].apply(self.find_included)
+        self.df_cat['description'] = self.df_cat['description'].apply(self.find_excluded)
+        self.df_cat['description'] = self.df_cat['description'].apply(self.find_classified_elsewhere)
+        self.df_cat['description'] = self.df_cat['description'].apply(self.remove_notes)
+        self.df_cat['description'] = self.df_cat['description'].apply(self.remove_note)
+        self.df_cat['description'] = self.df_cat['description'].str.lower()
+        self.df_cat['description'] = self.df_cat['description'].apply(self.preprocess_text)
+        self.df_cat['description'] = self.df_cat['description'].apply(lambda x: x[:4000]) 
 
-# Convert embeddings to numpy arrays for calculating similarity
-job_vectors = np.vstack(df['embedding'].values)
-category_vectors = np.vstack(df_cat['embedding'].values)
+    def compute_embeddings(self, texts) -> np.ndarray:
+        """Compute sentence embeddings for a list of texts."""
+        return self.model.encode(texts)
+    
+    def find_best_matching_code(self, job_embeddings: np.ndarray, category_embeddings: np.ndarray) -> np.ndarray:
+        """Find best label for each job based on cosine similarity."""
+        similarities = cosine_similarity(job_embeddings, category_embeddings)
+        best_match_indices = np.argmax(similarities, axis=1)
+        return self.df_cat.iloc[best_match_indices]['code'].values
+    
+    def classify_jobs(self) -> None:
+        """Asigns labels to jobs."""
+        self.load_data()
+        self.process_job_titles()
+        self.preprocess_labels_descriptions()
 
-df['isco_code'] = find_best_matching_code(job_vectors, category_vectors, df_cat)
+        # Compute embeddings
+        job_embeddings = self.compute_embeddings(self.df['title'].tolist())
+        category_embeddings = self.compute_embeddings(self.df_cat['description'].tolist())
 
-df[['id', 'isco_code']].to_csv('classification_final.csv', header=False, index=False)
+        # Find best matching codes
+        self.df['isco_code'] = self.find_best_matching_code(job_embeddings, category_embeddings)
+
+    def save_results(self, output_file_path: str) -> None:
+        """Save classification results to a CSV file."""
+        self.df[['id', 'isco_code']].to_csv(output_file_path, header=False, index=False)
+
+# Usage
+if __name__ == "__main__":
+    classifier = Classifier('data/translated_file_corrected.csv', 'data/wi_labels.csv')
+    classifier.classify_jobs()
+    classifier.save_results('data/results.csv')

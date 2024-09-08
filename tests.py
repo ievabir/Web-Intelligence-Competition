@@ -44,7 +44,7 @@ def validate_classification(output_file, original_file, labels_file):
     print("Validation successful.")
 
 try:
-    validate_classification('data/classification_final.csv', 'data/wi_dataset.csv', 'data/wi_labels.csv')
+    validate_classification('data/results.csv', 'data/wi_dataset.csv', 'data/wi_labels.csv')
     print("Validation successful")
 except Exception as e:
     print(f"Validation failed: {e}")
