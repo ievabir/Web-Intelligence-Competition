@@ -11,7 +11,7 @@ class Classifier:
     def __init__(self, job_file_path: str, labels_file_path: str):
         self.job_file_path = job_file_path
         self.labels_file_path = labels_file_path
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('all-mpnet-base-v2')
         self.stopwords = nltk.corpus.stopwords.words('english')
 
         self.stopwords.extend(['junior','senior', 'advertisement','london','head','part',
@@ -38,12 +38,6 @@ class Classifier:
         to preprocess."""
         self.df['title'] = self.df['title'].astype(str).fillna('')
         self.df['title'] = self.df['title'].apply(self.preprocess_text)
-    
-    # Temporarily commenting out for calibration purposes
-    # def find_included(self, desc: str) -> str:
-    #     """extracts 'Examples of the occupations classified here:'"""
-    #     idx = desc.find("Examples of the occupations classified here:")
-    #     return desc[idx:] if idx != -1 else desc
 
     def find_excluded(self, desc: str) -> str:
         """Removes text after 'Excluded from this group are:'."""
@@ -69,9 +63,6 @@ class Classifier:
     def preprocess_labels_descriptions(self) -> None:
         """Clean label descriptions."""
         self.df_cat['description'] = self.df_cat['description'].astype(str).fillna('')
-        
-        # Commenting out - unsure if it adds accuracy
-        # self.df_cat['description'] = self.df_cat['description'].apply(self.find_included)
         self.df_cat['description'] = self.df_cat['description'].apply(self.find_excluded)
         self.df_cat['description'] = self.df_cat['description'].apply(self.find_classified_elsewhere)
         self.df_cat['description'] = self.df_cat['description'].apply(self.remove_notes)
