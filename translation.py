@@ -1,14 +1,19 @@
-# The script to translate job posting info to English
+""" The script to translate job posting titles from different languages to 
+English using GoogleTranslator. 
+WARNING: This runs very slowly. time.sleep(0.3) in between each request
+was added not to hit the limit of api calls to GoogleTranslator per second. 
+More sophisticated solution could be added, but since this script only needs
+to run once it will be sufficient for the purpose at the moment. 
+"""
 
-
+import time
 from deep_translator import GoogleTranslator
 import logging
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor
 
-df = pd.read_csv('wi_dataset.csv')
+df = pd.read_csv('data/wi_dataset.csv')
+df = df[['id','title']]
 
-# Configure logging
 logging.basicConfig(
     level=logging.DEBUG, 
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -20,21 +25,18 @@ logging.basicConfig(
 
 def translate(phrase):
     try:
-        # Ensure the phrase is within the valid length range
         if 0 < len(phrase) <= 4000:
-            return GoogleTranslator(source='auto', target='en').translate(phrase)
+            translated = GoogleTranslator(source='auto', target='en').translate(phrase)
+            time.sleep(0.3)  
+            return translated
         else:
             phrase = phrase[:4000]
-            return GoogleTranslator(source='auto', target='en' ).translate(phrase)
+            translated = GoogleTranslator(source='auto', target='en').translate(phrase)
+            time.sleep(0.3)
+            return translated
     except Exception as e:
         return f"Translation error: {str(e)}"
-    
-def parallel_apply(df, func, column_name, num_workers=5):
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
-        result = list(executor.map(func, df[column_name]))
-    return result
 
-df['description'] = parallel_apply(df, translate, 'description')
-df['title'] = parallel_apply(df, translate, 'title')
+df['title'] = df['title'].apply(translate)
 
-df.to_csv('translated_file.csv', index=False)
+df.to_csv('data/translated_file.csv', index=False)
