@@ -11,9 +11,14 @@ class Classifier:
     def __init__(self, job_file_path: str, labels_file_path: str):
         self.job_file_path = job_file_path
         self.labels_file_path = labels_file_path
+
+        #Initialize the model.
         self.model = SentenceTransformer('all-mpnet-base-v2')
         self.stopwords = nltk.corpus.stopwords.words('english')
 
+        #Define the stopwords to be added/removed. This is a small manual
+        #selection of the words I decided could cause noise/ could change 
+        #semantic meaning when removed.
         self.stopwords.extend(['junior','senior', 'advertisement','london','head','part',
                                'project','lead','job','intern','remote','trainee'])
         if 'it' in self.stopwords:
@@ -98,8 +103,8 @@ class Classifier:
         """Save classification results to a CSV file."""
         self.df[['id', 'isco_code']].to_csv(output_file_path, header=False, index=False)
 
-# Usage
+
 if __name__ == "__main__":
-    classifier = Classifier('data/translated_file_corrected.csv', 'data/wi_labels.csv')
+    classifier = Classifier('data/translated_file.csv', 'data/wi_labels.csv')
     classifier.classify_jobs()
-    classifier.save_results('data/results.csv')
+    classifier.save_results('data/classification.csv')

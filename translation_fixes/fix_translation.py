@@ -1,3 +1,6 @@
+#Was only used to fix some issues with previous translation logic without 
+#rerunning translation. No longer relevant.
+
 from deep_translator import GoogleTranslator
 import logging
 import pandas as pd

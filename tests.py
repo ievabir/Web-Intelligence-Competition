@@ -1,3 +1,6 @@
+#Since were there some minor issues with submissions, these are simple tests
+#to make sure everything is as expected. 
+
 import pandas as pd
 
 def validate_classification(output_file, original_file, labels_file):

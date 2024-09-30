@@ -8,7 +8,7 @@ from sentence_transformers import SentenceTransformer
 import re
 
 
-# model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+# model = SentenceTransformer('all-mpnet-base-v2')
 # 0.43, 0.65, 0.04
 # model = SentenceTransformer('all-distilroberta-v1')
 # 0.46, 0.74, 0.08
@@ -63,4 +63,3 @@ similarity = default_similarity(embedding1, embedding3)
 print(f"Similarity Score (Correct): {similarity.item()}")
 similarity = default_similarity(embedding1, embedding4)
 print(f"Similarity Score (Wrong): {similarity.item()}")
-

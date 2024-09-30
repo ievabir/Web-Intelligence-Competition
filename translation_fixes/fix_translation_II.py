@@ -1,3 +1,6 @@
+#Was only used to fix some issues with previous translation logic without 
+#rerunning translation. No longer relevant.
+
 import pandas as pd
 
 df_1 = pd.read_csv('translation_mid.csv')
