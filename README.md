@@ -1,4 +1,9 @@
-# This repo contains scripts that were used to assign isco nomenclature for occupations and their descriptions scrapped from various job posting websites as a part of WEB INTELLIGENCE - CLASSIFICATION CHALLENGE (European Statistics Awards)
+# LLM approach to occupation classification
+
+ This repo contains scripts that were used to assign isco nomenclature for 
+ occupations and their descriptions scrapped from various job posting websites 
+ as a part of WEB INTELLIGENCE - CLASSIFICATION CHALLENGE (European Statistics 
+ Awards)
 
 The data itself is under NDA. This is simple approach using 'all-mpnet-base-v2'
 model from Hugging Face. 
