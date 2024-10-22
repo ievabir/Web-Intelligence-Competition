@@ -1,24 +1,51 @@
-# LLM approach to occupation classification
+# LLM-Based Occupation Classification Using ISCO Nomenclature
 
- This repo contains scripts that were used to assign isco nomenclature for 
+ This repo contains code that was used to assign isco nomenclature for 
  occupations and their descriptions scrapped from various job posting websites 
  as a part of WEB INTELLIGENCE - CLASSIFICATION CHALLENGE (European Statistics 
  Awards)
 
-The data itself is under NDA. This is simple approach using 'all-mpnet-base-v2'
-model from Hugging Face. 
+Note: The data is under NDA and cannot be shared.
+The approach is using 'all-mpnet-base-v2' model from Hugging Face. 
 
 __Python scrips:__
 
-**translation.py** : since the data was scrapped from job posting websites
-    in different languages, this script translates it to English using Google Translator
+**translation.py** : 
+    This script handles the translation of job postings that are in different 
+    languages into English using the Google Translator API.
 
-**main_pipeline.py** : this script takes the translated data, cleans it, 
-    and uses 'all-mpnet-base-v2' to calculate semantic similarity between 
-    job posting data and isco descriptions. it assign the most semantically similar 
-    description for each job title
+    - Inputs:
+    A .csv file containing the scraped job postings with at least two columns: id and title.
 
-**tests.py** : this scrip checks if there's issues with the submission file.
+    - Outputs:
+    A translated .csv file where all job titles are in English.
 
-files in  \prep and \translation_fixes directories were used at different phases
-when troubleshooting.
+
+**main_pipeline.py** :
+    This is the main script that performs the occupation classification.
+
+    - Inputs:
+    A translated .csv file containing job postings (id and title columns).
+    A .csv file containing ISCO labels (code, label, and description columns).
+
+    - Functionality:
+    Cleans the input data.
+    Uses the all-mpnet-base-v2 model to compute the semantic similarity between 
+    job titles and ISCO descriptions.
+    Assigns the most semantically similar ISCO label to each job title.
+
+
+**tests.py** : A script for testing the submission file before submission, 
+    ensuring there are no formatting or content-related issues.
+
+
+__Additional Directories__
+
+/prep/ and /translation_fixes/: These directories contain additional scripts 
+used during preprocessing and troubleshooting phases.
+
+__Technologies Used__
+
+    - Hugging Face Transformers for sentence embeddings and semantic similarity.
+    - Google Translator API for translating non-English job postings to English.
+    - Python Libraries: pandas, transformers, nltk.
